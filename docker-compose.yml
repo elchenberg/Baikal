@@ -1,0 +1,70 @@
+version: '3.7'
+
+services:
+  mysql:
+    cap_drop: [ALL]
+    image: mariadb:10.4.8-bionic
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=baikal
+      - MYSQL_USER=baikal
+      - MYSQL_PASSWORD=password
+    networks:
+      - sandbox_mysql
+    read_only: true
+    security_opt:
+      - no-new-privileges
+    tmpfs:
+      - /tmp
+    user: mysql:mysql
+    volumes:
+      - /var/run/mysqld
+      - mysql-data:/var/lib/mysql
+
+  nginx:
+    cap_drop: [ALL]
+    image: nginx:1.17.4-alpine
+    networks:
+      - public
+      - sandbox_fastcgi
+    ports:
+      - '80:8080'
+    read_only: true
+    security_opt:
+      - no-new-privileges
+    tmpfs:
+      - /tmp
+    user: nginx:nginx
+    volumes:
+      - php-core:/var/www/Core:ro
+      - php-public:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro,cached
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,cached
+
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
+    cap_drop: [ALL]
+    networks:
+      - sandbox_fastcgi
+      - sandbox_mysql
+    read_only: true
+    security_opt:
+      - no-new-privileges
+    volumes:
+      - php-core:/var/www/Core:ro
+      - php-public:/var/www/html:ro
+
+networks:
+  public:
+    internal: false
+  sandbox_fastcgi:
+    internal: true
+  sandbox_mysql:
+    internal: true
+
+volumes:
+  mysql-data:
+  php-core:
+  php-public:

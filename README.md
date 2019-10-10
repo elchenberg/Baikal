@@ -12,6 +12,17 @@ Upgrading
 
 Please follow [the upgrade instructions][5].
 
+Docker Compose
+--------------
+
+Build and run Baïkal in MySQL, Nginx, and PHP containers using Docker Compose:
+
+```sh
+docker-compose up --detach
+```
+
+Go to <http://localhost> to see the result.
+
 Credits
 -------
 
