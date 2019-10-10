@@ -1,0 +1,7 @@
+# Ignore everything when building container images ...
+*
+# ... except the following files and directories:
+!composer.json
+!Core
+!html
+!Specific
