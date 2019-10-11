@@ -45,6 +45,23 @@ abstract class Config extends \Flake\Core\Model\NoDb {
                 $this->aData[$sProp] = $aConfig[$sProp];
             }
         }
+        $this->overrideDefaultValuesWithEnvironmentVariables();
+    }
+
+    private function overrideDefaultValuesWithEnvironmentVariables() {
+        foreach (array_keys($this->aData) as $key) {
+            if (empty(getenv($key))) {
+                continue;
+            }
+            $filter = FILTER_DEFAULT;
+            if (in_array($key, ["BAIKAL_CARD_ENABLED", "BAIKAL_CAL_ENABLED", "PROJECT_DB_MYSQL"])) {
+                $filter = FILTER_VALIDATE_BOOLEAN;
+            }
+            if (in_array($key, ["BAIKAL_INVITE_FROM"])) {
+                $filter = FILTER_VALIDATE_EMAIL;
+            }
+            $this->aData[$key] = filter_var(getenv($key), $filter);
+        }
     }
 
     protected function getConfigAsString() {
@@ -228,7 +245,6 @@ abstract class Config extends \Flake\Core\Model\NoDb {
         if ($aNewConfig != $aWrittenConfig) {
             throw new \Exception("New config does not correspond to expected config. Aborting, nothing has been changed.");
         }
-
         file_put_contents($this->sConfigFilePath, $sLines);
     }
 
